@@ -1,0 +1,245 @@
+{
+  "name": "incident-triage-n8n-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a72a3c5-84bc-493c-a5b3-f1b2f0c0cd07",
+              "name": "ip",
+              "value": "={{$json[\"textHtml\"].replace(/<[^>]*>/g, \"\").match(/\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b/)?.[0] || \"\"}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        0
+      ],
+      "id": "d5785888-9e45-4a3a-94df-6b84cf83560f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      ip: $json.ip\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "25ef8ae2-2887-4d63-8418-c83ebcfb8ca3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.virustotal.com/api/v3/ip_addresses/{{$json[\"ip\"]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-apikey",
+              "value": "590ec5e7de165f77a1ea2e1c70f127d44298cdc339d7b21eaf12332f84b474ed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "5579f5ef-31cf-48a9-b478-46340c32b2c1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1c92f056-defa-4e4c-a602-a492c76e3df4",
+              "leftValue": "={{ Number($json[\"data\"][\"attributes\"][\"last_analysis_stats\"][\"malicious\"]) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        0
+      ],
+      "id": "0ae82b70-a9e3-4c9f-9360-46f3f8bbb159",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "babatundeusrah2007@gmail.com",
+        "toEmail": "babatundeusrah2007@gmail.com",
+        "subject": "Malicious IP Detected (Incident Triage Alert)",
+        "html": "=<h3>🚨 Security Alert</h3>\n\n<p><b>Malicious IP detected!</b></p>\n\n<p><b>IP Address:</b> {{$json[\"data\"][\"id\"]}}</p>\n\n<p><b>Malicious Score:</b> {{$json[\"data\"][\"attributes\"][\"last_analysis_stats\"][\"malicious\"]}}</p>\n\n<hr>\n\n<p>This alert was generated automatically by your n8n Incident Triage Workflow.</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        384,
+        -112
+      ],
+      "id": "c6bff741-1089-43cd-bd09-5a1a8e3af68e",
+      "name": "Send an Email",
+      "webhookId": "ed92c490-a5c4-4a57-ac2e-f6a241806e7b",
+      "credentials": {
+        "smtp": {
+          "id": "0rsCQDCHrzZn9ule",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49ad2c0c-45ee-4331-87d1-7295340d314c",
+              "name": "status",
+              "value": "=safe",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        96
+      ],
+      "id": "df891ef5-9ef7-474a-b1d4-074246076178",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.1,
+      "position": [
+        -592,
+        0
+      ],
+      "id": "0985efc2-41a7-40a6-981e-94f9bbe30438",
+      "name": "Email Trigger (IMAP)",
+      "credentials": {
+        "imap": {
+          "id": "sXOFT2PaTKfvvzKb",
+          "name": "IMAP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    },
+    "Email Trigger (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "478e5bfa-be05-4719-aa6f-ce311d095040",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "379f15cefaca1f285c1981b163c8d7d35ef9485edb3b62fd8c97e3f12b190c2f"
+  },
+  "id": "NzF60yZ2abJINXRf",
+  "tags": []
+}

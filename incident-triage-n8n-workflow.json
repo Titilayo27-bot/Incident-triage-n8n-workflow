@@ -45,7 +45,7 @@
           "parameters": [
             {
               "name": "x-apikey",
-              "value": "590ec5e7de165f77a1ea2e1c70f127d44298cdc339d7b21eaf12332f84b474ed"
+              "value": "YOUR_API_KEY_HERE"
             }
           ]
         },
